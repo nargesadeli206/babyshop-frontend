@@ -17,7 +17,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "incremental": true,
-    "composite": true
+    "composite": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"]
 }

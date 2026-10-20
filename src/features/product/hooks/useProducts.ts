@@ -1,37 +1,78 @@
-// src/features/product/hooks/useProducts.ts
 import { useState, useEffect } from 'react';
-import { ProductDto } from '../../../core/interfaces';
-import { productService } from '../services/productService';
+import { environment } from '../../../shared/config/environment';
 
-export const useProducts = (categoryId?: number) => {
-  const [products, setProducts] = useState<ProductDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+export interface Product {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  description?: string;
+  slug: string;
+  currentStock: number;
+}
+
+export const useProducts = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        let data: ProductDto[];
-        
-        if (categoryId) {
-          data = await productService.getProductsByCategory(categoryId);
-        } else {
-          data = await productService.getAllProducts();
-        }
-        
-        setProducts(data);
-        setError(null);
-      } catch (err) {
-        setError('خطا در دریافت محصولات');
-        console.error(err);
-      } finally {
-        setLoading(false);
+  // ۱. تابع گرفتن کل محصولات
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${environment.apiUrl}/Product`);
+      const result = await response.json();
+      if (result.success) {
+        setProducts(result.data);
+      } else {
+        throw new Error(result.message || 'خطا در دریافت لیست محصولات');
       }
-    };
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // ۲. تابع جستجو 🔍
+  const searchProducts = async (term: string) => {
+    if (!term.trim()) {
+      fetchProducts();
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${environment.apiUrl}/Product/search?term=${term}`);
+      const result = await response.json();
+      if (result.success) setProducts(result.data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ۳. تابع فیلتر بر اساس جنسیت 👶 (بر اساس API شما)
+  const filterByGender = async (genderId: number) => {
+    if (genderId === 0) {
+      fetchProducts();
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${environment.apiUrl}/Product/by-gender/${genderId}`);
+      const result = await response.json();
+      if (result.success) setProducts(result.data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProducts();
-  }, [categoryId]);
+  }, []);
 
-  return { products, loading, error };
+  return { products, loading, error, searchProducts, filterByGender, refresh: fetchProducts };
 };

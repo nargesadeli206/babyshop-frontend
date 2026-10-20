@@ -2,6 +2,7 @@
 import React from 'react';
 import { ProductDto } from '../../../core/interfaces';
 import SoftButton from '../../../shared/components/Button/SoftButton';
+import { getImageUrl } from '../../../shared/utils/imageUrl';
 
 interface ProductCardProps {
   product: ProductDto;
@@ -19,7 +20,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
       {/* تصویر محصول با انیمیشن */}
       <div className="relative mb-4 overflow-hidden rounded-soft">
         <img
-          src={product.imageUrl || 'https://placekitten.com/300/300'}
+          src={getImageUrl(product.imageUrl)}
           alt={product.name}
           className="w-full h-64 object-cover transform transition-transform duration-700 group-hover:scale-110"
         />
